@@ -1,95 +1,232 @@
+using Newtonsoft.Json;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
 using System.Diagnostics;
+using System.Drawing.Imaging;
 
-namespace App_511_SWAPI
+namespace App_511_SWAPI;
+
+public partial class Form1 : Form
 {
-    public partial class Form1 : Form
+    private NetworkHelper networkHelper = new();
+
+
+    public Form1()
     {
-        private NetworkHelper networkHelper = new();
+        InitializeComponent();
+
+        QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+
+        progressBar1.Visible = false;
+
+        this.Load += Form1_Load;
+
+        //var testPattern = new TestPattern();
+        //testPattern.Test();
+    }
+
+    private async void Form1_Load(object? sender, EventArgs e)
+    {
+        AnimateLoading(true);
+
+        await LoadData();
+
+        AnimateLoading(false);
+    }
+
+    private async Task LoadData()
+    {
+        var swapiManager = new SwapiInfoManager(networkHelper);
+        var imagesManager = new ImageDataManager(networkHelper);
+
+        InfoBase infoBase = await swapiManager.GetBaseInfo();
+        List<PersonData> personData = await swapiManager.GetPeoplesInfo(infoBase.PeoplesUrl);
+
+        List<ImageItem> imageItems = await imagesManager.GetImagesDataInfo();
+
+        personData = DataMerger.MergeData(personData, imageItems);
+
+        FillPersonsList(personData);
+    }
 
 
-        public Form1()
+    private void FillPersonsList(List<PersonData> persons)
+    {
+        listBoxPersons.Items.Clear();
+        foreach (var item in persons)
         {
-            InitializeComponent();
-
-            progressBar1.Visible = false;
-
-            this.Load += Form1_Load;
-
-            var testPattern = new TestPattern();
-            testPattern.Test();
+            listBoxPersons.Items.Add(item);
         }
+    }
 
-        private async void Form1_Load(object? sender, EventArgs e)
+    private async Task ShowImage(string imageUrl)
+    {
+        try
         {
+            using var client = new HttpClient();
+            client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+            client.DefaultRequestHeaders.Add("Referer", "https://starwars.fandom.com/");
+            byte[] bytes = await client.GetByteArrayAsync(imageUrl);
+            using var vipsImage = NetVips.Image.NewFromBuffer(bytes);
+            byte[] pngBuffer = vipsImage.WriteToBuffer(".png");
+            using var ms = new MemoryStream(pngBuffer);
+            pictureBox1.Image?.Dispose();
+            pictureBox1.Image = System.Drawing.Image.FromStream(ms);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine("Error decoding: " + ex.Message);
+        }
+    }
+
+    private async void listBoxPersons_SelectedIndexChanged(object sender, EventArgs e)
+    {
+        if (listBoxPersons.SelectedItem is PersonData person)
+        {
+            pictureBox1.Image?.Dispose();
+            // Load base "error" or "invisible" (transparent) image.
             AnimateLoading(true);
 
-            await LoadData();
+            var swapiManager = new SwapiInfoManager(networkHelper);
+
+            labelName.Text = person.Name;
+            labelBirthDate.Text = string.Concat(
+                "Birth year: ", person.BirthYear);
+
+            labelPlanet.Text = string.Concat(
+                "Planet: ", await swapiManager
+                .GetPlanetName(person.Homeworld));
+
+            labelTransport.Text = string.Concat(
+                "Transport: ", await swapiManager
+                .GetTransportNames(person));
+
+            await ShowImage(person.ImageUrl);
 
             AnimateLoading(false);
         }
+    }
 
-        private async Task LoadData()
+    private void AnimateLoading(bool isLoading)
+    {
+        progressBar1.Visible = isLoading;
+    }
+
+    private async void buttonSave_Click(object sender, EventArgs e)
+    {
+        if (listBoxPersons.SelectedItem is not PersonData person)
+            return;
+
+        using SaveFileDialog dialog = new SaveFileDialog();
+
+        dialog.Filter = "PDF files (*.pdf)|*.pdf";
+        dialog.FileName = $"{person.Name}_info.pdf";
+
+        if (dialog.ShowDialog() != DialogResult.OK)
+            return;
+
+        try
         {
-            var swapiManager = new SwapiInfoManager(networkHelper);
-            var imagesManager = new ImageDataManager(networkHelper);
+            buttonSave.Enabled = false;
 
-            InfoBase infoBase = await swapiManager.GetBaseInfo();
-            List<PersonData> personData = await swapiManager.GetPeoplesInfo(infoBase.PeoplesUrl);
+            var manager = new SwapiInfoManager(networkHelper);
 
-            List<ImageItem> imageItems = await imagesManager.GetImagesDataInfo();
+            string planet = await manager.GetPlanetName(person.Homeworld);
+            string transport = await manager.GetTransportNames(person);
 
-            personData = DataMerger.MergeData(personData, imageItems);
+            byte[]? imageBytes = null;
 
-            FillPersonsList(personData);
-        }
-
-       
-        private void FillPersonsList(List<PersonData> persons)
-        {
-            listBoxPersons.Items.Clear();
-            foreach (var item in persons)
+            if (pictureBox1.Image != null)
             {
-                listBoxPersons.Items.Add(item);
-            }
-        }
+                using Bitmap bitmap = new Bitmap(pictureBox1.Image);
+                using MemoryStream ms = new MemoryStream();
 
-        private async Task ShowImage(string imageUrl)
-        {
-            try
+                bitmap.Save(ms, ImageFormat.Png);
+
+                imageBytes = ms.ToArray();
+            }
+
+            Document.Create(container =>
             {
-                using var client = new HttpClient();
-                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
-                client.DefaultRequestHeaders.Add("Referer", "https://starwars.fandom.com/");
-                byte[] bytes = await client.GetByteArrayAsync(imageUrl);
-                using var vipsImage = NetVips.Image.NewFromBuffer(bytes);
-                byte[] pngBuffer = vipsImage.WriteToBuffer(".png");
-                using var ms = new MemoryStream(pngBuffer);
-                pictureBox1.Image?.Dispose();
-                pictureBox1.Image = System.Drawing.Image.FromStream(ms);
-            }
-            catch (Exception ex)
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(40);
+
+                    page.DefaultTextStyle(x => x.FontSize(12));
+
+                    page.Header()
+                        .Text("CHARACTER DOSSIER")
+                        .FontSize(24)
+                        .Bold()
+                        .AlignCenter();
+
+                    page.Content()
+                        .PaddingVertical(20)
+                        .Column(column =>
+                        {
+                            column.Spacing(12);
+
+                            column.Item()
+                                .Text(person.Name.ToUpper())
+                                .FontSize(20)
+                                .Bold();
+
+                            if (imageBytes != null)
+                            {
+                                column.Item()
+                                    .AlignCenter()
+                                    .Width(200)
+                                    .Height(200)
+                                    .Image(imageBytes)
+                                    .FitArea();
+                            }
+
+                            column.Item().Text($"Name: {person.Name}");
+                            column.Item().Text($"Homeworld: {planet}");
+                            column.Item().Text($"Birth year: {person.BirthYear}");
+
+                            column.Item().Text($"Height: {person.Height} cm");
+                            column.Item().Text($"Mass: {person.Mass} kg");
+
+                            column.Item().Text($"Hair color: {person.HairColor}");
+                            column.Item().Text($"Skin color: {person.SkinColor}");
+                            column.Item().Text($"Eye color: {person.EyeColor}");
+
+                            column.Item()
+                                .PaddingTop(10)
+                                .Text("TRANSPORT")
+                                .FontSize(16)
+                                .Bold();
+
+                            column.Item().Text(transport);
+                        });
+
+                    page.Footer()
+                        .AlignCenter()
+                        .Text($"STAR WARS DATABASE | {DateTime.Now:dd.MM.yyyy}");
+                });
+            })
+            .GeneratePdf(dialog.FileName);
+
+
+            Process.Start(new ProcessStartInfo
             {
-                Debug.WriteLine("Error decoding: " + ex.Message);
-            }
+                FileName = dialog.FileName,
+                UseShellExecute = true
+            });
         }
-
-        private async void listBoxPersons_SelectedIndexChanged(object sender, EventArgs e)
+        catch (Exception ex)
         {
-            if (listBoxPersons.SelectedItem is PersonData person)
-            {
-                pictureBox1.Image?.Dispose();
-                // Load base "error" or "invisible" (transparent) image.
-                AnimateLoading(true);
-
-                await ShowImage(person.ImageUrl);
-
-                AnimateLoading(false);
-            }
+            Debug.WriteLine(
+                ex.ToString(),
+                "PDF Error",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Error);
         }
-
-        private void AnimateLoading(bool isLoading)
+        finally
         {
-            progressBar1.Visible = isLoading;
+            buttonSave.Enabled = true;
         }
     }
 }

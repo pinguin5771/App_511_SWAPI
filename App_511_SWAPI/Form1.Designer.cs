@@ -29,91 +29,108 @@
         private void InitializeComponent()
         {
             listBoxPersons = new ListBox();
-            pictureBox1 = new PictureBox();
             progressBar1 = new ProgressBar();
-            label1 = new Label();
-            label2 = new Label();
-            label3 = new Label();
-            label4 = new Label();
+            labelName = new Label();
+            labelPlanet = new Label();
+            labelBirthDate = new Label();
+            pictureBox1 = new RoundedPictureBox();
+            labelTransport = new Label();
+            buttonSave = new Button();
             ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
             // listBoxPersons
             // 
             listBoxPersons.FormattingEnabled = true;
-            listBoxPersons.Location = new Point(12, 17);
+            listBoxPersons.Location = new Point(14, 14);
+            listBoxPersons.Margin = new Padding(5);
             listBoxPersons.Name = "listBoxPersons";
-            listBoxPersons.Size = new Size(274, 424);
+            listBoxPersons.Size = new Size(442, 836);
             listBoxPersons.TabIndex = 1;
             listBoxPersons.SelectedIndexChanged += listBoxPersons_SelectedIndexChanged;
             // 
-            // pictureBox1
-            // 
-            pictureBox1.Location = new Point(318, 69);
-            pictureBox1.Name = "pictureBox1";
-            pictureBox1.Size = new Size(292, 256);
-            pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
-            pictureBox1.TabIndex = 2;
-            pictureBox1.TabStop = false;
-            // 
             // progressBar1
             // 
-            progressBar1.Location = new Point(11, 472);
+            progressBar1.Location = new Point(1, 870);
+            progressBar1.Margin = new Padding(5);
             progressBar1.Name = "progressBar1";
-            progressBar1.Size = new Size(608, 15);
+            progressBar1.Size = new Size(875, 15);
             progressBar1.Style = ProgressBarStyle.Marquee;
             progressBar1.TabIndex = 4;
             // 
-            // label1
+            // labelName
             // 
-            label1.AutoSize = true;
-            label1.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            label1.Location = new Point(318, 17);
-            label1.Name = "label1";
-            label1.Size = new Size(96, 28);
-            label1.TabIndex = 5;
-            label1.Text = "<Name>";
+            labelName.AutoSize = true;
+            labelName.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
+            labelName.ForeColor = SystemColors.HotTrack;
+            labelName.Location = new Point(473, 25);
+            labelName.Margin = new Padding(5, 0, 5, 0);
+            labelName.Name = "labelName";
+            labelName.Size = new Size(0, 45);
+            labelName.TabIndex = 5;
             // 
-            // label2
+            // labelPlanet
             // 
-            label2.AutoSize = true;
-            label2.Location = new Point(319, 342);
-            label2.Name = "label2";
-            label2.Size = new Size(86, 20);
-            label2.TabIndex = 6;
-            label2.Text = "<param_1>";
+            labelPlanet.AutoSize = true;
+            labelPlanet.ForeColor = SystemColors.HotTrack;
+            labelPlanet.Location = new Point(469, 560);
+            labelPlanet.Margin = new Padding(5, 0, 5, 0);
+            labelPlanet.Name = "labelPlanet";
+            labelPlanet.Size = new Size(0, 32);
+            labelPlanet.TabIndex = 6;
             // 
-            // label3
+            // labelBirthDate
             // 
-            label3.AutoSize = true;
-            label3.Location = new Point(318, 378);
-            label3.Name = "label3";
-            label3.Size = new Size(86, 20);
-            label3.TabIndex = 7;
-            label3.Text = "<param_2>";
+            labelBirthDate.AutoSize = true;
+            labelBirthDate.ForeColor = SystemColors.HotTrack;
+            labelBirthDate.Location = new Point(470, 612);
+            labelBirthDate.Margin = new Padding(5, 0, 5, 0);
+            labelBirthDate.Name = "labelBirthDate";
+            labelBirthDate.Size = new Size(0, 32);
+            labelBirthDate.TabIndex = 8;
             // 
-            // label4
+            // pictureBox1
             // 
-            label4.AutoSize = true;
-            label4.Location = new Point(319, 412);
-            label4.Name = "label4";
-            label4.Size = new Size(86, 20);
-            label4.TabIndex = 8;
-            label4.Text = "<param_3>";
+            pictureBox1.BackColor = Color.Transparent;
+            pictureBox1.Location = new Point(473, 90);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(400, 460);
+            pictureBox1.TabIndex = 12;
+            pictureBox1.TabStop = false;
+            // 
+            // labelTransport
+            // 
+            labelTransport.ForeColor = SystemColors.HotTrack;
+            labelTransport.Location = new Point(469, 660);
+            labelTransport.Name = "labelTransport";
+            labelTransport.Size = new Size(400, 153);
+            labelTransport.TabIndex = 13;
+            // 
+            // buttonSave
+            // 
+            buttonSave.Location = new Point(770, 816);
+            buttonSave.Name = "buttonSave";
+            buttonSave.Size = new Size(99, 46);
+            buttonSave.TabIndex = 14;
+            buttonSave.Text = "Save";
+            buttonSave.UseVisualStyleBackColor = true;
+            buttonSave.Click += buttonSave_Click;
             // 
             // Form1
             // 
-            AutoScaleDimensions = new SizeF(8F, 20F);
+            AutoScaleDimensions = new SizeF(13F, 32F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = SystemColors.AppWorkspace;
-            ClientSize = new Size(634, 499);
-            Controls.Add(label4);
-            Controls.Add(label3);
-            Controls.Add(label2);
-            Controls.Add(label1);
-            Controls.Add(progressBar1);
+            ClientSize = new Size(887, 890);
+            Controls.Add(buttonSave);
+            Controls.Add(labelTransport);
             Controls.Add(pictureBox1);
+            Controls.Add(labelBirthDate);
+            Controls.Add(labelPlanet);
+            Controls.Add(labelName);
+            Controls.Add(progressBar1);
             Controls.Add(listBoxPersons);
+            Margin = new Padding(5);
             Name = "Form1";
             Text = "Form1";
             ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
@@ -123,11 +140,12 @@
 
         #endregion
         private ListBox listBoxPersons;
-        private PictureBox pictureBox1;
         private ProgressBar progressBar1;
-        private Label label1;
-        private Label label2;
-        private Label label3;
-        private Label label4;
+        private Label labelName;
+        private Label labelPlanet;
+        private Label labelBirthDate;
+        private RoundedPictureBox pictureBox1;
+        private Label labelTransport;
+        private Button buttonSave;
     }
 }

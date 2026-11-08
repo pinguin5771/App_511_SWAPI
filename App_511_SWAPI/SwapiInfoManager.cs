@@ -42,4 +42,50 @@ internal class SwapiInfoManager
 
         return new();
     }
+
+    public async Task<string> GetPlanetName(string planetUrl)
+    {
+        RequestResponse response =
+            await networkHelper.GetFromCache(planetUrl);
+
+        if (response.Status != RequestStatus.Ok)
+            return "Unknown";
+
+        var planet =
+            JsonHelper.DeserializeJson<Dictionary<string, object>>(
+                response.Data);
+
+        return planet["name"]?.ToString() ?? "Unknown";
+    }
+
+
+    public async Task<string> GetTransportNames(PersonData person)
+    {
+        List<string> urls = person.Vehicles
+            .Concat(person.Starships)
+            .Distinct()
+            .ToList();
+
+        List<string> names = new();
+
+        foreach (string url in urls)
+        {
+            RequestResponse response =
+                await networkHelper.GetFromCache(url);
+
+            if (response.Status != RequestStatus.Ok)
+                continue;
+
+            var transport =
+                JsonHelper.DeserializeJson<Dictionary<string, object>>(
+                    response.Data);
+
+            if (transport.TryGetValue("name", out object? name))
+                names.Add(name.ToString() ?? "");
+        }
+
+        return names.Count > 0
+            ? string.Join(", ", names)
+            : "No transport";
+    }
 }

@@ -59,6 +59,12 @@ public class PersonData
     [JsonProperty("homeworld")]
     public string Homeworld { get; set; } = string.Empty;
 
+    [JsonProperty("vehicles")]
+    public List<string> Vehicles { get; set; } = new();
+
+    [JsonProperty("starships")]
+    public List<string> Starships { get; set; } = new();
+
     public string ImageUrl { get; set; } = string.Empty;
 
     public override string ToString() => Name;
